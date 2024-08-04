@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cashflowapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cashflowapi
+  template:
+    metadata:
+      labels:
+        app: cashflowapi
+    spec:
+      containers:
+      - name: cashflowapi
+        image: docker.io/netogan/cashflowapi:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cashflowapi-service
+spec:
+  selector:
+    app: cashflowapi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
