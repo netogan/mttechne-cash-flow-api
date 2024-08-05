@@ -12,8 +12,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -21,8 +19,10 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddControllers();
 
+var postgresConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<CashFlowContext>(options =>
-    options.UseSqlite("Data Source=cashflow.db"));
+    options.UseNpgsql(postgresConnection));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

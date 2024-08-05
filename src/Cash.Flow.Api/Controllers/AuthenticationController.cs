@@ -22,12 +22,12 @@ namespace Cash.Flow.Api.Controllers
         }
 
         [HttpPost("token")]
-        public async Task<IActionResult> GetToken([FromBody] User user)
+        public async Task<IActionResult> GetToken(string userName, string password)
         {
             var existingUser = _userService.GetUsers()
-                .SingleOrDefault(u => u.Username == user.Username);
+                .SingleOrDefault(u => u.Username == userName);
 
-            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(user.Password, existingUser.Password))
+            if (existingUser == null || !BCrypt.Net.BCrypt.Verify(password, existingUser.Password))
             {
                 return Unauthorized();
             }
@@ -36,10 +36,10 @@ namespace Cash.Flow.Api.Controllers
             var key = Encoding.UTF8.GetBytes(AuthConst.IssuerSigningKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
+                Subject = new ClaimsIdentity(
+                [
                     new Claim(ClaimTypes.Name, existingUser.Username)
-                }),
+                ]),
                 Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = AuthConst.ValidIssuer,
                 Audience = AuthConst.ValidAudience,
