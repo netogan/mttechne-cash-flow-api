@@ -1,3 +1,59 @@
+# Deployment of DB PostgreSQL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "cashflow"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "postgres"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        emptyDir: {}
+---
+# Service of DB PostgreSQL
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+# ConfigMap of API with connection
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  ConnectionStrings__DefaultConnection: "Host=postgres-service;Database=cashflow;Username=postgres;Password=postgres"
+---
+# Deployment of cashflowapi with dependency on db postgresql
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +68,10 @@ spec:
       labels:
         app: cashflowapi
     spec:
+      initContainers:
+      - name: init-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 2; done;']
       containers:
       - name: cashflowapi
         image: docker.io/netogan/cashflowapi:latest
@@ -20,7 +80,11 @@ spec:
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
+        envFrom:
+        - configMapRef:
+            name: app-config
 ---
+#Service of cashflowapi
 apiVersion: v1
 kind: Service
 metadata:
@@ -28,8 +92,7 @@ metadata:
 spec:
   selector:
     app: cashflowapi
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
   type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 80
