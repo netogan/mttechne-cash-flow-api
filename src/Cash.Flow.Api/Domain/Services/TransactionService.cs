@@ -19,19 +19,19 @@ namespace Cash.Flow.Api.Domain.Services
             return await _transactionRepository.GetTransaction(id);
         }
 
-        public IEnumerable<Transaction> GetTransactions()
+        public IEnumerable<Transaction> GetTransactions(DateOnly? createAt = null) 
+            => _transactionRepository.GetTransactions(createAt);
+
+        public async Task<Transaction> AddTransaction(Transaction transaction)
         {
-            return _transactionRepository.GetTransactions();
+            transaction.CreateAt = DateTime.Now;
+
+            return await _transactionRepository.AddTransaction(transaction);
         }
 
-        public async Task<Transaction> AddTransaction(Transaction Transaction)
+        public async Task<Transaction> UpdateTransaction(Transaction transaction)
         {
-            return await _transactionRepository.AddTransaction(Transaction);
-        }
-
-        public async Task<Transaction> UpdateTransaction(Transaction Transaction)
-        {
-            return await _transactionRepository.UpdateTransaction(Transaction);
+            return await _transactionRepository.UpdateTransaction(transaction);
         }
 
         public async Task DeleteTransaction(int id)

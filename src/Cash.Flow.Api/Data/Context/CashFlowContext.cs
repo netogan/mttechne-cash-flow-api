@@ -13,6 +13,7 @@ namespace Cash.Flow.Api.Data.Context
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
                 entity.Property(e=> e.Password).IsRequired().HasMaxLength(100);
             });
@@ -20,9 +21,10 @@ namespace Cash.Flow.Api.Data.Context
             modelBuilder.Entity<Transaction>(entity => 
             {
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.Description).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Amount).IsRequired().HasColumnType("decimal(18,2)");
-                entity.Property(e => e.Date).IsRequired();
+                entity.Property(e => e.CreateAt).IsRequired().HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.Type).IsRequired();
             });
 

@@ -5,25 +5,26 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cash.Flow.Api.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionService _transactionService;
+        private const string RouteApi = "api/[controller]";
 
         public TransactionsController(ITransactionService transactionService)
         {
             _transactionService = transactionService;
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<Transaction>> GetTransactions()
+        [HttpGet(RouteApi)]
+        [Authorize]
+        public ActionResult<IEnumerable<Transaction>> GetTransactions(DateOnly? createAt = null)
         {
-            return Ok(_transactionService.GetTransactions());
+            return Ok(_transactionService.GetTransactions(createAt));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet(RouteApi + "{id}")]
+        [Authorize]
         public async Task<ActionResult<Transaction>> GetTransaction(int id)
         {
             var transaction = await _transactionService.GetTransaction(id);
@@ -34,14 +35,16 @@ namespace Cash.Flow.Api.Controllers
             return transaction;
         }
 
-        [HttpPost]
+        [HttpPost(RouteApi)]
+        [Authorize]
         public async Task<ActionResult<Transaction>> PostTransaction(Transaction transaction)
         {
             await _transactionService.AddTransaction(transaction);
             return CreatedAtAction(nameof(GetTransaction), new { id = transaction.Id }, transaction);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut(RouteApi + "{id}")]
+        [Authorize]
         public async Task<IActionResult> PutTransaction(Transaction transaction)
         {
             var existingTransaction = await _transactionService.GetTransaction(transaction.Id);
@@ -53,7 +56,8 @@ namespace Cash.Flow.Api.Controllers
             return AcceptedAtAction(nameof(GetTransaction), new { id = transaction.Id }, existingTransaction);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete(RouteApi + "{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteTransaction(int id)
         {
             var transaction = await _transactionService.GetTransaction(id);
@@ -63,6 +67,13 @@ namespace Cash.Flow.Api.Controllers
             }
             await _transactionService.DeleteTransaction(id);
             return NoContent();
+        }
+
+        [HttpGet("api/internal/[controller]")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public ActionResult<IEnumerable<Transaction>> GetTransactionsInternal(DateOnly? createAt = null)
+        {
+            return Ok(_transactionService.GetTransactions(createAt));
         }
     }
 }

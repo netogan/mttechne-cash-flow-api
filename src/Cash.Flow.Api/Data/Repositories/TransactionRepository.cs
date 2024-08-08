@@ -14,8 +14,20 @@ namespace Cash.Flow.Api.Data.Repositories
             _context = context;
         }
 
-        public async Task<Transaction> GetTransaction(int id) => await _context.Transactions.FirstOrDefaultAsync(u => u.Id == id);
-        public IEnumerable<Transaction> GetTransactions() => _context.Transactions;
+        public async Task<Transaction> GetTransaction(int id) 
+            => await _context.Transactions.FirstOrDefaultAsync(u => u.Id == id);
+
+        public IEnumerable<Transaction> GetTransactions(DateOnly? createAt = null) 
+        {
+            var transactions = _context.Transactions;
+
+            if (createAt != null)
+            {
+                return transactions.Where(e => DateOnly.FromDateTime(e.CreateAt) >= createAt);
+            }
+
+            return transactions;
+        } 
 
         public async Task<Transaction> AddTransaction(Transaction transaction) 
         {
