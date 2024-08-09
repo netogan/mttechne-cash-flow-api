@@ -83,6 +83,18 @@ spec:
         envFrom:
         - configMapRef:
             name: app-cashflow-config
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
 ---
 #Service of cashflowapi
 apiVersion: v1

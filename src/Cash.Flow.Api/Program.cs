@@ -6,6 +6,7 @@ using Cash.Flow.Api.Domain.Services;
 using Cash.Flow.Api.Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -25,6 +26,10 @@ var postgresConnection = builder.Configuration.GetConnectionString("DefaultConne
 
 builder.Services.AddDbContext<CashFlowContext>(options =>
     options.UseNpgsql(postgresConnection) );
+
+builder.Services.AddHealthChecks()
+    .AddCheck("API Health Check", () => HealthCheckResult.Healthy("API is running"))
+    .AddNpgSql(postgresConnection, name: "postgresql", tags: ["db", "sql", "postgresql"]);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -86,6 +91,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/api/health");
 
 app.MapControllers();
 
