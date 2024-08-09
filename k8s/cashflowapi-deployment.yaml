@@ -49,7 +49,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: app-cashflow-config
 data:
   ConnectionStrings__DefaultConnection: "Host=postgres-service;Database=cashflow;Username=postgres;Password=postgres"
 ---
@@ -82,7 +82,7 @@ spec:
           value: "Production"
         envFrom:
         - configMapRef:
-            name: app-config
+            name: app-cashflow-config
 ---
 #Service of cashflowapi
 apiVersion: v1
